@@ -1,0 +1,22 @@
+{
+  "name": "Immo Michi API GraphQL Schema",
+  "schemaPath": "./schema.graphql",
+  "extensions": {
+    "endpoints": {
+      "immo-api.ms07.at": {
+        "url": "https://immo-api.ms07.at/graphql",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": true
+      },
+      "localhost:7200": {
+        "url": "http://localhost:7200/graphql",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": true
+      }
+    }
+  }
+}
