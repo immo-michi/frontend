@@ -21,19 +21,21 @@ interface Data {
   }
 }
 
-interface Variables {
-  filter?: {
-    area?: {
-      min?: number
-      max?: number
-    }
-    price?: {
-      min?: number
-      max?: number
-    }
-    query?: string
-    region?: { lat: number; lng: number }[]
+export interface SearchPropertyFilter {
+  area?: {
+    min?: number
+    max?: number
   }
+  price?: {
+    min?: number
+    max?: number
+  }
+  query?: string
+  region?: { lat: number; lng: number }[]
+}
+
+interface Variables {
+  filter?: SearchPropertyFilter
   pager?: {
     limit?: number
     offset?: number
@@ -42,4 +44,14 @@ interface Variables {
 
 export const useSearchPropertyQuery = (
   options?: QueryHookOptions<Data, Variables>
-): QueryResult<Data, Variables> => useQuery<Data, Variables>(QUERY, options)
+): QueryResult<Data, Variables> => {
+  options = options || {}
+
+  options.context = {
+    ...(options.context || {}),
+    debounceKey: 'property-search',
+    debounceTimeout: 300,
+  }
+
+  return useQuery<Data, Variables>(QUERY, options)
+}

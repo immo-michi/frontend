@@ -1,81 +1,59 @@
-import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api'
-import { Libraries } from '@react-google-maps/api/dist/utils/make-load-script-url'
+import { useJsApiLoader } from '@react-google-maps/api'
 import { Button } from 'antd'
 import { NextPage } from 'next'
 import getConfig from 'next/config'
-import React from 'react'
-import { useSearchPropertyQuery } from '../graphql/query/search.property.query'
+import dynamic from 'next/dynamic'
+import React, { useState } from 'react'
+import { PropertyFragment } from '../graphql/fragment/property.fragment'
+import {
+  SearchPropertyFilter,
+  useSearchPropertyQuery,
+} from '../graphql/query/search.property.query'
 import { NextConfigType } from '../next.config.type'
 
 const { publicRuntimeConfig } = getConfig() as NextConfigType
 
-const libraries: Libraries = ['places']
-
 const Index: NextPage = () => {
-  const { isLoaded } = useLoadScript({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: publicRuntimeConfig.googleMapsKey,
-    libraries,
+    // ...otherOptions
   })
-  const { loading, data } = useSearchPropertyQuery()
 
-  if (loading || !isLoaded) {
-    return <div>Loading Data</div>
+  const [filter, setFilter] = useState<SearchPropertyFilter>({})
+  useSearchPropertyQuery({
+    variables: {
+      filter,
+      pager: {
+        limit: 1000,
+      },
+    },
+    onCompleted(data) {
+      setItems(data.search.items)
+    },
+  })
+  const [items, setItems] = useState<PropertyFragment[]>([])
+  const Map = dynamic(
+    () => import('../components/map'),
+    { ssr: false } // This line is important. It's what prevents server-side render
+  )
+
+  if (!isLoaded) {
+    return <div>loading</div>
   }
 
   return (
     <div>
-      meine start seite!! ohne default styles
-      <Button>HOME</Button>
-      <GoogleMap
-        options={{
-          streetViewControl: false,
-          fullscreenControl: false,
-          mapTypeControl: false,
-          disableDefaultUI: true,
-          zoomControl: true,
+      <div
+        style={{
+          position: 'absolute',
+          zIndex: 10,
+          top: 16,
+          right: 16,
         }}
-        center={{
-          lat: 43,
-          lng: 16,
-        }}
-        mapContainerStyle={{
-          height: '100%',
-          width: '100%',
-          minHeight: 400,
-          minWidth: 400,
-        }}
-        zoom={5}
-        /*
-    onBoundsChanged={() => {
-      setFilter({
-        ...filter,
-        region: [
-          map.current
-            .getBounds()
-            .getNorthEast()
-            .toJSON(),
-          map.current
-            .getBounds()
-            .getSouthWest()
-            .toJSON(),
-        ],
-      })
-        }}
-      */
       >
-        {data.search.items.map((property) => (
-          <Marker
-            /* TODO add reference to what RV this marker is */
-            key={property.id}
-            // icon={'/images/mappin.png'}
-            label={property.name}
-            position={{
-              lat: property.location.lat,
-              lng: property.location.lng,
-            }}
-          />
-        ))}
-      </GoogleMap>
+        <Button>HOME</Button>
+      </div>
+      <Map items={items} filter={filter} onFilter={setFilter} />
     </div>
   )
 }

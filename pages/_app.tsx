@@ -6,7 +6,7 @@ import Head from 'next/head'
 import React from 'react'
 import { wrapper } from 'store'
 
-import '../css/antd.less'
+//import '../css/antd.less'
 import '../css/globals.scss'
 import getApolloClient from '../graphql/client'
 import { NextConfigType } from '../next.config.type'
