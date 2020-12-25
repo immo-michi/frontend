@@ -67,7 +67,7 @@ const getClient = (config: NextConfigType): ApolloClient<any> => {
             headers,
           }
         }),
-        new DebounceLink(100),
+        new DebounceLink(300),
         new HttpLink({
           uri: publicRuntimeConfig.endpoint,
         }),

@@ -3,6 +3,7 @@ import { gql } from '@apollo/client'
 export class PropertyFragment {
   id: number
   name: string
+  description: string
   images: string[]
   price: number
   area: number
@@ -16,12 +17,18 @@ export class PropertyFragment {
     lng: number
     address: string
   }
+  source: {
+    id: string
+    link: string
+    name: string
+  }
 }
 
 export const PROPERTY_FRAGMENT = gql`
   fragment Property on Property {
     id
     name
+    description
     images
     price
     area
@@ -34,6 +41,11 @@ export const PROPERTY_FRAGMENT = gql`
       lat
       lng
       address
+    }
+    source {
+      id
+      link
+      name: source
     }
   }
 `
