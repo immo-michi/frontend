@@ -1,5 +1,17 @@
 import { CloseOutlined, ExportOutlined, StarOutlined } from '@ant-design/icons'
-import { Card, Descriptions, Image, message, Space, Tag, Tooltip } from 'antd'
+import {
+  Button,
+  Card,
+  Carousel,
+  Col,
+  Descriptions,
+  Image,
+  message,
+  Row,
+  Space,
+  Tag,
+  Tooltip,
+} from 'antd'
 import React, { CSSProperties } from 'react'
 import { PropertyFragment } from '../graphql/fragment/property.fragment'
 import { Money } from './money'
@@ -14,6 +26,69 @@ export const PropertyCard: React.FC<Props> = ({ property, style, onClose }) => {
   const addToList = () => {
     void message.error('Listen sind in Arbeit!')
   }
+
+  return (
+    <div
+      style={{
+        ...style,
+        background: '#FFF',
+      }}
+    >
+      <Row>
+        <Col>
+          <Image.PreviewGroup>
+            <Carousel autoplay>
+              {property.images.map((src, index) => (
+                <div key={index}>
+                  <Image width={200} src={src} />
+                </div>
+              ))}
+            </Carousel>
+          </Image.PreviewGroup>
+        </Col>
+        <Col flex={'1'} style={{ padding: 16 }}>
+          <Space direction={'vertical'} style={{ width: '100%', paddingRight: 24 }}>
+            <div style={{ display: 'flex' }}>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  flex: '1',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {property.name}
+              </div>
+              <Tooltip key="external" title={'Quelle in neuem Fenster öffnen'}>
+                <Button
+                  size={'small'}
+                  target={'_blank'}
+                  rel={'noreferrer'}
+                  href={property.source.link}
+                >
+                  auf {property.source.name} öffnen
+                </Button>
+              </Tooltip>
+            </div>
+            <div>
+              Preis: <Money value={property.price} />, Fläche: {property.area}m<sup>2</sup>
+            </div>
+            <div>
+              {property.tags.map((tag) => (
+                <Tag>{tag}</Tag>
+              ))}
+            </div>
+          </Space>
+        </Col>
+      </Row>
+      <CloseOutlined
+        onClick={() => onClose()}
+        style={{ position: 'absolute', right: 16, top: 16 }}
+      />
+    </div>
+  )
 
   return (
     <Card

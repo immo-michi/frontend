@@ -140,7 +140,8 @@ const Index: NextPage = () => {
                 // icon={'/images/mappin.png'}
                 icon={{
                   url: `data:image/svg+xml;base64,${markerIconSvg(property.price, property.area)}`,
-                  scaledSize: new google.maps.Size(300 / 2, 40 / 2),
+                  scaledSize: new google.maps.Size(60, 60),
+                  anchor: new google.maps.Point(30, 60),
                 }}
                 title={property.name}
                 clusterer={clusterer}
