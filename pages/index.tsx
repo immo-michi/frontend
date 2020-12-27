@@ -34,7 +34,20 @@ const Index: NextPage = () => {
       },
     },
     onCompleted(data) {
-      setItems(data.search.items)
+      const l = data.search.items.length
+      const pl = Math.ceil(Math.sqrt(l))
+      console.log('l', l)
+      console.log('pl', pl)
+      setItems(
+        data.search.items.map((item, i) => ({
+          ...item,
+          location: {
+            ...item.location,
+            lat: item.location.lat + (0.0005 / pl) * (i % pl),
+            lng: item.location.lng + (0.0005 / pl) * Math.floor(i / pl),
+          },
+        }))
+      )
     },
   })
 
@@ -53,7 +66,7 @@ const Index: NextPage = () => {
   }
 
   return (
-    <div>
+    <div style={{ height: '100%' }}>
       <div
         style={{
           position: 'absolute',
@@ -96,7 +109,7 @@ const Index: NextPage = () => {
           zoomControl: true,
         }}
         mapContainerStyle={{
-          height: '100vh',
+          height: '100%',
           width: '100vw',
         }}
         zoom={11}
@@ -140,8 +153,8 @@ const Index: NextPage = () => {
                 // icon={'/images/mappin.png'}
                 icon={{
                   url: `data:image/svg+xml;base64,${markerIconSvg(property.price, property.area)}`,
-                  scaledSize: new google.maps.Size(60, 60),
-                  anchor: new google.maps.Point(30, 60),
+                  scaledSize: new google.maps.Size(70, 60),
+                  anchor: new google.maps.Point(35, 60),
                 }}
                 title={property.name}
                 clusterer={clusterer}
