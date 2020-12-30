@@ -1,8 +1,11 @@
 import { GoogleMap, Marker, MarkerClusterer, useJsApiLoader } from '@react-google-maps/api'
-import { Button } from 'antd'
+import { Button, Space } from 'antd'
 import { NextPage } from 'next'
 import getConfig from 'next/config'
+import { useRouter } from 'next/router'
 import React, { useEffect, useRef, useState } from 'react'
+import { MapFilterArea } from '../components/map/filter/area'
+import { MapFilterPrice } from '../components/map/filter/price'
 import { markerIconSvg } from '../components/marker.icon.svg'
 import { PropertyCard } from '../components/property.card'
 import { useUserLocation } from '../components/use.user.location'
@@ -20,9 +23,61 @@ const Index: NextPage = () => {
     // ...otherOptions
   })
 
+  const router = useRouter()
   const [selected, setSelected] = useState<PropertyFragment>()
   const [items, setItems] = useState<PropertyFragment[]>([])
   const [filter, setFilter] = useState<SearchPropertyFilter>({})
+
+  useEffect(() => {
+    console.log('price', router.query)
+
+    const parse = (input) => {
+      if (isNaN(input)) return undefined
+
+      return parseInt(input, 10)
+    }
+
+    setFilter({
+      price: {
+        min: parse(router.query['price[min]'] as string),
+        max: parse(router.query['price[max]'] as string),
+      },
+      area: {
+        min: parse(router.query['area[min]'] as string),
+        max: parse(router.query['area[max]'] as string),
+      },
+    })
+  }, [router.query])
+
+  useEffect(() => {
+    const query = {}
+
+    if (filter.price?.min) {
+      query['price[min]'] = filter.price?.min
+    }
+
+    if (filter.price?.max) {
+      query['price[max]'] = filter.price?.max
+    }
+
+    if (filter.area?.min) {
+      query['area[min]'] = filter.area?.min
+    }
+
+    if (filter.area?.max) {
+      query['area[max]'] = filter.area?.max
+    }
+
+    void router.replace(
+      {
+        pathname: '/',
+        query,
+      },
+      undefined,
+      { shallow: true }
+    )
+  }, [filter.price.min, filter.price.max, filter.area.min, filter.area.max])
+
   const userLocation = useUserLocation()
   const map = useRef<google.maps.Map>()
 
@@ -30,14 +85,13 @@ const Index: NextPage = () => {
     variables: {
       filter,
       pager: {
-        limit: 1000,
+        limit: 100,
       },
     },
+    skip: filter == {},
     onCompleted(data) {
       const l = data.search.items.length
       const pl = Math.ceil(Math.sqrt(l))
-      console.log('l', l)
-      console.log('pl', pl)
       setItems(
         data.search.items.map((item, i) => ({
           ...item,
@@ -67,7 +121,7 @@ const Index: NextPage = () => {
 
   return (
     <div style={{ height: '100%' }}>
-      <div
+      <Space
         style={{
           position: 'absolute',
           zIndex: 10,
@@ -75,8 +129,12 @@ const Index: NextPage = () => {
           right: 16,
         }}
       >
+        <MapFilterArea filter={filter} onChange={setFilter} />
+
+        <MapFilterPrice filter={filter} onChange={setFilter} />
+
         <Button onClick={() => map.current.setCenter(userLocation)}>HOME</Button>
-      </div>
+      </Space>
 
       {selected && (
         <PropertyCard
