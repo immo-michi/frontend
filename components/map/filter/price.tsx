@@ -1,11 +1,11 @@
 import { Button, Dropdown, InputNumber, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { PropertySearchFilterInput } from '../../../../backend/src/model/property/property.search.filter.input'
+import { SearchPropertyFilter } from '../../../graphql/query/search.property.query'
 import { EuroFormatter } from '../../format'
 
 interface Props {
-  filter: PropertySearchFilterInput
-  onChange: (next: PropertySearchFilterInput) => any
+  filter: SearchPropertyFilter
+  onChange: (next: SearchPropertyFilter) => any
 }
 
 export const MapFilterPrice: React.FC<Props> = (props) => {

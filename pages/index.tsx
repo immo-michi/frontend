@@ -1,5 +1,5 @@
 import { GoogleMap, Marker, MarkerClusterer, useJsApiLoader } from '@react-google-maps/api'
-import { Button, Space } from 'antd'
+import { Alert, Button, Space } from 'antd'
 import { NextPage } from 'next'
 import getConfig from 'next/config'
 import { useRouter } from 'next/router'
@@ -27,6 +27,7 @@ const Index: NextPage = () => {
   const [selected, setSelected] = useState<PropertyFragment>()
   const [items, setItems] = useState<PropertyFragment[]>([])
   const [filter, setFilter] = useState<SearchPropertyFilter>({})
+  const [total, setTotal] = useState<number>()
 
   useEffect(() => {
     console.log('price', router.query)
@@ -76,10 +77,12 @@ const Index: NextPage = () => {
       undefined,
       { shallow: true }
     )
-  }, [filter.price.min, filter.price.max, filter.area.min, filter.area.max])
+  }, [filter.price?.min, filter.price?.max, filter.area?.min, filter.area?.max])
 
   const userLocation = useUserLocation()
   const map = useRef<google.maps.Map>()
+
+  console.log('search for filter', filter)
 
   useSearchPropertyQuery({
     variables: {
@@ -88,10 +91,12 @@ const Index: NextPage = () => {
         limit: 100,
       },
     },
-    skip: filter == {},
+    skip: !filter.region || filter.region.length === 0,
     onCompleted(data) {
       const l = data.search.items.length
       const pl = Math.ceil(Math.sqrt(l))
+
+      setTotal(data.search.total)
       setItems(
         data.search.items.map((item, i) => ({
           ...item,
@@ -135,6 +140,19 @@ const Index: NextPage = () => {
 
         <Button onClick={() => map.current.setCenter(userLocation)}>HOME</Button>
       </Space>
+
+      {total > items.length && (
+        <Alert
+          style={{
+            position: 'absolute',
+            zIndex: 9,
+            bottom: 32,
+            left: 32,
+            right: 76,
+          }}
+          message={`Es werden nur ${items.length} von ${total} Immobilien angezeigt, Zomme doch ein bisschen rein!`}
+        />
+      )}
 
       {selected && (
         <PropertyCard

@@ -48,29 +48,17 @@ export const PropertyCard: React.FC<Props> = ({ property, style, onClose }) => {
         </Col>
         <Col flex={'1'} style={{ padding: 16 }}>
           <Space direction={'vertical'} style={{ width: '100%', paddingRight: 24 }}>
-            <div style={{ display: 'flex' }}>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                  flex: '1',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {property.name}
-              </div>
-              <Tooltip key="external" title={'Quelle in neuem Fenster öffnen'}>
-                <Button
-                  size={'small'}
-                  target={'_blank'}
-                  rel={'noreferrer'}
-                  href={property.source.link}
-                >
-                  auf {property.source.name} öffnen
-                </Button>
-              </Tooltip>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                flex: '1',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {property.name}
             </div>
             <div>
               Preis: <Money value={property.price} />, Fläche: {property.area}m<sup>2</sup>
@@ -80,6 +68,17 @@ export const PropertyCard: React.FC<Props> = ({ property, style, onClose }) => {
                 <Tag>{tag}</Tag>
               ))}
             </div>
+
+            <Tooltip key="external" title={'Quelle in neuem Fenster öffnen'}>
+              <Button
+                size={'small'}
+                target={'_blank'}
+                rel={'noreferrer'}
+                href={property.source.link}
+              >
+                auf {property.source.name} öffnen
+              </Button>
+            </Tooltip>
           </Space>
         </Col>
       </Row>
