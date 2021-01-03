@@ -120,13 +120,9 @@ const Index: NextPage = () => {
     }
   }, [userLocation, map])
 
-  if (!isLoaded) {
-    return <div>loading</div>
-  }
-
   return (
     <div style={{ height: '100%' }}>
-      {initial && (
+      {(initial || !isLoaded) && (
         <div
           style={{
             position: 'absolute',
@@ -215,47 +211,48 @@ const Index: NextPage = () => {
         />
       )}
 
-      <GoogleMap
-        onLoad={(ref) => {
-          map.current = ref
+      {isLoaded && (
+        <GoogleMap
+          onLoad={(ref) => {
+            map.current = ref
 
-          if (ref) {
-            ref.setCenter({ lat: 48.208174, lng: 16.373819 })
-          }
-        }}
-        onClick={() => setSelected(null)}
-        options={{
-          streetViewControl: false,
-          fullscreenControl: false,
-          mapTypeControl: false,
-          disableDefaultUI: true,
-          zoomControl: true,
-        }}
-        mapContainerStyle={{
-          height: '100%',
-          width: '100vw',
-        }}
-        zoom={11}
-        onBoundsChanged={() => {
-          if (!map.current) {
-            return
-          }
-          const region = [
-            map.current.getBounds().getNorthEast().toJSON(),
-            map.current.getBounds().getSouthWest().toJSON(),
-          ]
+            if (ref) {
+              ref.setCenter({ lat: 48.208174, lng: 16.373819 })
+            }
+          }}
+          onClick={() => setSelected(null)}
+          options={{
+            streetViewControl: false,
+            fullscreenControl: false,
+            mapTypeControl: false,
+            disableDefaultUI: true,
+            zoomControl: true,
+          }}
+          mapContainerStyle={{
+            height: '100%',
+            width: '100vw',
+          }}
+          zoom={11}
+          onBoundsChanged={() => {
+            if (!map.current) {
+              return
+            }
+            const region = [
+              map.current.getBounds().getNorthEast().toJSON(),
+              map.current.getBounds().getSouthWest().toJSON(),
+            ]
 
-          if (filter && JSON.stringify(region) === JSON.stringify(filter.region)) {
-            return
-          }
+            if (filter && JSON.stringify(region) === JSON.stringify(filter.region)) {
+              return
+            }
 
-          setFilter({
-            ...filter,
-            region,
-          })
-        }}
-      >
-        {/*
+            setFilter({
+              ...filter,
+              region,
+            })
+          }}
+        >
+          {/*
         {items.map((property) => (
           <Marker
             key={property.id}
@@ -268,29 +265,33 @@ const Index: NextPage = () => {
           />
         ))}
         */}
-        <MarkerClusterer>
-          {(clusterer) =>
-            items.map((property) => (
-              <Marker
-                key={property.id}
-                // icon={'/images/mappin.png'}
-                icon={{
-                  url: `data:image/svg+xml;base64,${markerIconSvg(property.price, property.area)}`,
-                  scaledSize: new google.maps.Size(70, 60),
-                  anchor: new google.maps.Point(35, 60),
-                }}
-                title={property.name}
-                clusterer={clusterer}
-                onClick={() => setSelected(property)}
-                position={{
-                  lat: property.location.lat,
-                  lng: property.location.lng,
-                }}
-              />
-            ))
-          }
-        </MarkerClusterer>
-      </GoogleMap>
+          <MarkerClusterer>
+            {(clusterer) =>
+              items.map((property) => (
+                <Marker
+                  key={property.id}
+                  // icon={'/images/mappin.png'}
+                  icon={{
+                    url: `data:image/svg+xml;base64,${markerIconSvg(
+                      property.price,
+                      property.area
+                    )}`,
+                    scaledSize: new google.maps.Size(70, 60),
+                    anchor: new google.maps.Point(35, 60),
+                  }}
+                  title={property.name}
+                  clusterer={clusterer}
+                  onClick={() => setSelected(property)}
+                  position={{
+                    lat: property.location.lat,
+                    lng: property.location.lng,
+                  }}
+                />
+              ))
+            }
+          </MarkerClusterer>
+        </GoogleMap>
+      )}
     </div>
   )
 }
