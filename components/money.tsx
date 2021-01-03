@@ -1,4 +1,5 @@
 import React from 'react'
+import { EuroFormatter } from './format'
 
 interface Props {
   value?: number
@@ -9,5 +10,5 @@ export const Money: React.FC<Props> = ({ value }) => {
     return null
   }
 
-  return <>{value.toFixed(2)} €</>
+  return <>{EuroFormatter(value)}</>
 }

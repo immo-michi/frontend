@@ -23,6 +23,7 @@ const Index: NextPage = () => {
     // ...otherOptions
   })
 
+  const [initial, setInitial] = useState(true)
   const router = useRouter()
   const [selected, setSelected] = useState<PropertyFragment>()
   const [items, setItems] = useState<PropertyFragment[]>([])
@@ -82,8 +83,6 @@ const Index: NextPage = () => {
   const userLocation = useUserLocation()
   const map = useRef<google.maps.Map>()
 
-  console.log('search for filter', filter)
-
   useSearchPropertyQuery({
     variables: {
       filter,
@@ -107,6 +106,7 @@ const Index: NextPage = () => {
           },
         }))
       )
+      setInitial(false)
     },
   })
 
@@ -126,6 +126,53 @@ const Index: NextPage = () => {
 
   return (
     <div style={{ height: '100%' }}>
+      {initial && (
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 12,
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: '#FFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <img
+            src={'/favicon.png'}
+            alt={'Immo Michi'}
+            style={{
+              width: 256,
+              maxWidth: '90%',
+            }}
+          />
+
+          <div
+            style={{
+              padding: 32,
+              fontSize: 20,
+            }}
+          >
+            Lade Karte und Immobilien
+          </div>
+
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              right: 16,
+              fontSize: 20,
+              fontWeight: 'bold',
+            }}
+          >
+            IMMO Michi
+          </div>
+        </div>
+      )}
       <Space
         style={{
           position: 'absolute',
