@@ -1,9 +1,13 @@
+import { MenuOutlined } from '@ant-design/icons'
 import { GoogleMap, Marker, MarkerClusterer, useJsApiLoader } from '@react-google-maps/api'
-import { Alert, Button, Space } from 'antd'
+import { Alert, Button, Dropdown, Menu, Space } from 'antd'
 import { NextPage } from 'next'
 import getConfig from 'next/config'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useEffect, useRef, useState } from 'react'
+import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
+import { connect } from 'react-redux'
 import { MapFilterArea } from '../components/map/filter/area'
 import { MapFilterPrice } from '../components/map/filter/price'
 import { markerIconSvg } from '../components/marker.icon.svg'
@@ -15,9 +19,17 @@ import {
   useSearchPropertyQuery,
 } from '../graphql/query/search.property.query'
 import { NextConfigType } from '../next.config.type'
+import { State } from '../store'
 
 const { publicRuntimeConfig } = getConfig() as NextConfigType
-const Index: NextPage = () => {
+
+interface StateProps {
+  authenticated: boolean
+}
+
+type Props = StateProps
+
+const Index: NextPage<Props> = (props) => {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: publicRuntimeConfig.googleMapsKey,
     // ...otherOptions
@@ -68,6 +80,10 @@ const Index: NextPage = () => {
 
     if (filter.area?.max) {
       query['area[max]'] = filter.area?.max
+    }
+
+    if (Object.keys(query).length === 0) {
+      return
     }
 
     void router.replace(
@@ -181,7 +197,44 @@ const Index: NextPage = () => {
 
         <MapFilterPrice filter={filter} onChange={setFilter} />
 
-        <Button onClick={() => map.current.setCenter(userLocation)}>HOME</Button>
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item onClick={() => map.current.setCenter(userLocation)}>GPS Home</Menu.Item>
+              <Menu.Divider />
+              <Menu.Item disabled={!props.authenticated}>
+                <Link href={'/profile'}>
+                  <a>Profil</a>
+                </Link>
+              </Menu.Item>
+              <Menu.Item disabled={!props.authenticated}>Meine Listen</Menu.Item>
+              <Menu.Item disabled={!props.authenticated}>Benachrichtigungen</Menu.Item>
+              <Menu.Divider />
+              {props.authenticated ? (
+                <Menu.Item>
+                  <Link href={'/logout'}>
+                    <a>Logout</a>
+                  </Link>
+                </Menu.Item>
+              ) : (
+                <Menu.Item>
+                  <FacebookLogin
+                    appId={publicRuntimeConfig.facebookAppId}
+                    autoLoad
+                    callback={(response) => console.log('FB Login!!', response)}
+                    render={(renderProps) => <a onClick={renderProps.onClick}>Login</a>}
+                  />
+                </Menu.Item>
+              )}
+            </Menu>
+          }
+          placement="bottomRight"
+          arrow
+        >
+          <Button>
+            <MenuOutlined />
+          </Button>
+        </Dropdown>
       </Space>
 
       {total > items.length && (
@@ -296,4 +349,6 @@ const Index: NextPage = () => {
   )
 }
 
-export default Index
+export default connect<StateProps, unknown, unknown, State>(({ auth }) => ({
+  authenticated: auth.authenticated,
+}))(Index)
