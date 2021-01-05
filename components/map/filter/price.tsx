@@ -4,19 +4,20 @@ import { SearchPropertyFilter } from '../../../graphql/query/search.property.que
 import { EuroFormatter } from '../../format'
 
 interface Props {
+  visible: boolean
+  setVisible: (next: boolean) => any
   filter: SearchPropertyFilter
   onChange: (next: SearchPropertyFilter) => any
 }
 
 export const MapFilterPrice: React.FC<Props> = (props) => {
-  const [visible, setVisible] = useState(false)
   const [min, setMin] = useState<number>()
   const [max, setMax] = useState<number>()
 
   useEffect(() => {
     setMax(props.filter?.price?.max)
     setMin(props.filter?.price?.min)
-  }, [props.filter, visible])
+  }, [props.filter, props.visible])
 
   const apply = () => {
     props.onChange({
@@ -28,7 +29,7 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
       },
     })
 
-    setVisible(false)
+    props.setVisible(false)
   }
 
   let additional = ''
@@ -45,7 +46,8 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
 
   return (
     <Dropdown
-      visible={visible}
+      arrow
+      visible={props.visible}
       overlay={
         <div style={{ background: '#FFF', padding: 16, borderRadius: 8 }}>
           <Space>
@@ -67,7 +69,7 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
         </div>
       }
     >
-      <Button onClick={() => setVisible(!visible)}>Preis{additional}</Button>
+      <Button onClick={() => props.setVisible(!props.visible)}>Preis{additional}</Button>
     </Dropdown>
   )
 }

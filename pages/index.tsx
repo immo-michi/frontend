@@ -10,26 +10,34 @@ import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props
 import { connect } from 'react-redux'
 import { MapFilterArea } from '../components/map/filter/area'
 import { MapFilterPrice } from '../components/map/filter/price'
+import { MapFilterType } from '../components/map/filter/type'
 import { markerIconSvg } from '../components/marker.icon.svg'
 import { PropertyCard } from '../components/property.card'
 import { useUserLocation } from '../components/use.user.location'
 import { PropertyFragment } from '../graphql/fragment/property.fragment'
+import { useLoginFacebookMutation } from '../graphql/mutation/login.facebook.mutation'
 import {
   SearchPropertyFilter,
   useSearchPropertyQuery,
 } from '../graphql/query/search.property.query'
 import { NextConfigType } from '../next.config.type'
 import { State } from '../store'
+import { setToken, setTokenType } from '../store/auth'
 
 const { publicRuntimeConfig } = getConfig() as NextConfigType
+
+interface DispatchProps {
+  setToken: setTokenType
+}
 
 interface StateProps {
   authenticated: boolean
 }
 
-type Props = StateProps
+type Props = StateProps & DispatchProps
 
 const Index: NextPage<Props> = (props) => {
+  const [dropdown, setDropdown] = useState<string>()
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: publicRuntimeConfig.googleMapsKey,
     // ...otherOptions
@@ -41,9 +49,12 @@ const Index: NextPage<Props> = (props) => {
   const [items, setItems] = useState<PropertyFragment[]>([])
   const [filter, setFilter] = useState<SearchPropertyFilter>({})
   const [total, setTotal] = useState<number>()
+  const [facebookLoginMutation] = useLoginFacebookMutation()
 
   useEffect(() => {
-    console.log('price', router.query)
+    if (!initial) {
+      return
+    }
 
     const parse = (input) => {
       if (isNaN(input)) return undefined
@@ -51,6 +62,7 @@ const Index: NextPage<Props> = (props) => {
       return parseInt(input, 10)
     }
 
+    console.log('updated query', router.query)
     setFilter({
       price: {
         min: parse(router.query['price[min]'] as string),
@@ -60,6 +72,7 @@ const Index: NextPage<Props> = (props) => {
         min: parse(router.query['area[min]'] as string),
         max: parse(router.query['area[max]'] as string),
       },
+      type: router.query.type ? (router.query.type as string).split(',') : undefined,
     })
   }, [router.query])
 
@@ -82,9 +95,17 @@ const Index: NextPage<Props> = (props) => {
       query['area[max]'] = filter.area?.max
     }
 
+    if (filter.type) {
+      console.log("filter.type.join(',')", filter.type, filter.type.join(','))
+
+      query['type'] = filter.type.join(',')
+    }
+
     if (Object.keys(query).length === 0) {
       return
     }
+
+    console.log('query', query)
 
     void router.replace(
       {
@@ -92,9 +113,15 @@ const Index: NextPage<Props> = (props) => {
         query,
       },
       undefined,
-      { shallow: true }
+      { shallow: false }
     )
-  }, [filter.price?.min, filter.price?.max, filter.area?.min, filter.area?.max])
+  }, [
+    filter.price?.min || 0,
+    filter.price?.max || 0,
+    filter.area?.min || 0,
+    filter.area?.max || 0,
+    filter.type ? filter.type.join(',') : '',
+  ])
 
   const userLocation = useUserLocation()
   const map = useRef<google.maps.Map>()
@@ -193,22 +220,42 @@ const Index: NextPage<Props> = (props) => {
           right: 16,
         }}
       >
-        <MapFilterArea filter={filter} onChange={setFilter} />
+        <MapFilterArea
+          filter={filter}
+          onChange={setFilter}
+          visible={dropdown === 'area'}
+          setVisible={(show) => setDropdown(show ? 'area' : undefined)}
+        />
 
-        <MapFilterPrice filter={filter} onChange={setFilter} />
+        <MapFilterPrice
+          filter={filter}
+          onChange={setFilter}
+          visible={dropdown === 'price'}
+          setVisible={(show) => setDropdown(show ? 'price' : undefined)}
+        />
+
+        <MapFilterType
+          filter={filter}
+          onChange={setFilter}
+          visible={dropdown === 'type'}
+          setVisible={(show) => setDropdown(show ? 'type' : undefined)}
+        />
 
         <Dropdown
+          visible={dropdown === 'user'}
           overlay={
             <Menu>
               <Menu.Item onClick={() => map.current.setCenter(userLocation)}>GPS Home</Menu.Item>
-              <Menu.Divider />
-              <Menu.Item disabled={!props.authenticated}>
-                <Link href={'/profile'}>
-                  <a>Profil</a>
-                </Link>
-              </Menu.Item>
-              <Menu.Item disabled={!props.authenticated}>Meine Listen</Menu.Item>
-              <Menu.Item disabled={!props.authenticated}>Benachrichtigungen</Menu.Item>
+              {props.authenticated && [
+                <Menu.Divider key={'spacer'} />,
+                <Menu.Item key={'profile'}>
+                  <Link href={'/profile'}>
+                    <a>Profil</a>
+                  </Link>
+                </Menu.Item>,
+                <Menu.Item key={'lists'}>Meine Listen</Menu.Item>,
+                <Menu.Item key={'notifications'}>Benachrichtigungen</Menu.Item>,
+              ]}
               <Menu.Divider />
               {props.authenticated ? (
                 <Menu.Item>
@@ -220,8 +267,15 @@ const Index: NextPage<Props> = (props) => {
                 <Menu.Item>
                   <FacebookLogin
                     appId={publicRuntimeConfig.facebookAppId}
-                    autoLoad
-                    callback={(response) => console.log('FB Login!!', response)}
+                    callback={async (response) => {
+                      const result = await facebookLoginMutation({
+                        variables: {
+                          token: response.accessToken,
+                        },
+                      })
+
+                      props.setToken(result.data.token)
+                    }}
                     render={(renderProps) => <a onClick={renderProps.onClick}>Login</a>}
                   />
                 </Menu.Item>
@@ -231,7 +285,7 @@ const Index: NextPage<Props> = (props) => {
           placement="bottomRight"
           arrow
         >
-          <Button>
+          <Button onClick={() => setDropdown(dropdown !== 'user' ? 'user' : undefined)}>
             <MenuOutlined />
           </Button>
         </Dropdown>
@@ -287,7 +341,7 @@ const Index: NextPage<Props> = (props) => {
           }}
           zoom={11}
           onBoundsChanged={() => {
-            if (!map.current) {
+            if (!map.current || !map.current.getBounds()) {
               return
             }
             const region = [
@@ -349,6 +403,11 @@ const Index: NextPage<Props> = (props) => {
   )
 }
 
-export default connect<StateProps, unknown, unknown, State>(({ auth }) => ({
-  authenticated: auth.authenticated,
-}))(Index)
+export default connect<StateProps, DispatchProps, unknown, State>(
+  ({ auth }) => ({
+    authenticated: auth.authenticated,
+  }),
+  {
+    setToken,
+  }
+)(Index)

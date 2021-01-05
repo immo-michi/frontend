@@ -30,6 +30,7 @@ export interface SearchPropertyFilter {
     min?: number
     max?: number
   }
+  type?: string[]
   query?: string
   region?: { lat: number; lng: number }[]
 }
