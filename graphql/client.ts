@@ -16,7 +16,7 @@ const getClient = (config: NextConfigType): ApolloClient<any> => {
       link: from([
         new TokenRefreshLink({
           accessTokenField: 'token',
-          isTokenValidOrUndefined: () => {
+          isTokenValidOrUndefined: async () => {
             return true
 
             // TODO process authentication

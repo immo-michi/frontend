@@ -1,7 +1,8 @@
 import { Button, Dropdown, InputNumber, Space } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { SearchPropertyFilter } from '../../../graphql/query/search.property.query'
 import { EuroFormatter } from '../../format'
+import { getNumberOrUndefined } from './number.or.undefined'
 
 interface Props {
   visible: boolean
@@ -19,18 +20,18 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
     setMin(props.filter?.price?.min)
   }, [props.filter, props.visible])
 
-  const apply = () => {
+  const apply = useCallback(() => {
     props.onChange({
       ...props.filter,
       price: {
         ...props.filter.price,
-        min: Number(min) || undefined,
-        max: Number(max) || undefined,
+        min,
+        max,
       },
     })
 
     props.setVisible(false)
-  }
+  }, [min, max, props])
 
   let additional = ''
 
@@ -55,14 +56,14 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
               prefix={'€'}
               placeholder={'Min'}
               value={min}
-              onChange={(value) => setMin(Number(value))}
+              onChange={(value) => setMin(getNumberOrUndefined(value))}
             />
             -
             <InputNumber
               prefix={'€'}
               placeholder={'Max'}
               value={props.filter?.price?.max}
-              onChange={(value) => setMax(Number(value))}
+              onChange={(value) => setMax(getNumberOrUndefined(value, false))}
             />
             <Button onClick={apply}>Anwenden</Button>
           </Space>

@@ -126,7 +126,7 @@ const Index: NextPage<Props> = (props) => {
   const userLocation = useUserLocation()
   const map = useRef<google.maps.Map>()
 
-  useSearchPropertyQuery({
+  const { error } = useSearchPropertyQuery({
     variables: {
       filter,
       pager: {
@@ -162,6 +162,19 @@ const Index: NextPage<Props> = (props) => {
       map.current.setCenter(userLocation)
     }
   }, [userLocation, map])
+
+  if (error) {
+    return (
+      <pre
+        style={{
+
+        }}
+      >
+        <h1>Error fetching locations</h1>
+        {JSON.stringify(error.graphQLErrors, undefined, 2)}
+      </pre>
+    )
+  }
 
   return (
     <div style={{ height: '100%' }}>
@@ -250,7 +263,7 @@ const Index: NextPage<Props> = (props) => {
                 <Menu.Divider key={'spacer'} />,
                 <Menu.Item key={'profile'}>
                   <Link href={'/profile'}>
-                    <a>Profil</a>
+                    Profil
                   </Link>
                 </Menu.Item>,
                 <Menu.Item key={'lists'}>Meine Listen</Menu.Item>,
@@ -260,7 +273,7 @@ const Index: NextPage<Props> = (props) => {
               {props.authenticated ? (
                 <Menu.Item>
                   <Link href={'/logout'}>
-                    <a>Logout</a>
+                    Logout
                   </Link>
                 </Menu.Item>
               ) : (

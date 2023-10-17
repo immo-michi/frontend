@@ -1,7 +1,8 @@
 import { ApolloProvider } from '@apollo/client'
 import AppSuspense from 'components/app.suspense'
 import getConfig from 'next/config'
-import { AppType } from 'next/dist/next-server/lib/utils'
+import { ConfigProvider, message, App as AntdApp } from 'antd'
+import { AppInitialProps, AppType } from 'next/dist/shared/lib/utils'
 import Head from 'next/head'
 import React from 'react'
 import { wrapper } from 'store'
@@ -14,6 +15,7 @@ const config = getConfig() as NextConfigType
 const App: AppType = ({ Component, pageProps, ...other }) => {
   return (
     <ApolloProvider client={getApolloClient(config)}>
+      <AntdApp>
       <Head>
         <title>Immo Michi</title>
         <meta
@@ -27,6 +29,7 @@ const App: AppType = ({ Component, pageProps, ...other }) => {
         {/* Workaround for https://github.com/vercel/next.js/issues/8592 */}
         <Component {...pageProps} err={(other as any).err} />
       </AppSuspense>
+      </AntdApp>
     </ApolloProvider>
   )
 }
