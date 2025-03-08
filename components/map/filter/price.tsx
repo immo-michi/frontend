@@ -48,7 +48,7 @@ export const MapFilterPrice: React.FC<Props> = (props) => {
   return (
     <Dropdown
       arrow
-      visible={props.visible}
+      open={props.visible}
       overlay={
         <div style={{ background: '#FFF', padding: 16, borderRadius: 8 }}>
           <Space>

@@ -11,6 +11,7 @@ interface Props {
 
 export const MapFilterType: React.FC<Props> = (props) => {
   const [type, setType] = useState<string[]>()
+  const [rental, setRental] = useState(false)
 
   useEffect(() => {
     setType(props.filter?.type)
@@ -20,6 +21,7 @@ export const MapFilterType: React.FC<Props> = (props) => {
     props.onChange({
       ...props.filter,
       type: type && type.length > 0 ? type : undefined,
+      rental,
     })
 
     props.setVisible(false)
@@ -30,24 +32,36 @@ export const MapFilterType: React.FC<Props> = (props) => {
   if (props.filter?.type) {
     additional = `: ${props.filter?.type.map((type) => type.toUpperCase()).join(', ')}`
 
+    if (props.filter.rental) {
+      additional+= ' (Miete)'
+    } else {
+      additional+= ' (Kauf)'
+    }
     // <HomeOutlined />
+  } else {
+    if (props.filter.rental) {
+      additional = ': Miete'
+    } else {
+      additional = ': Kauf'
+    }
   }
 
   return (
     <Dropdown
       arrow
-      visible={props.visible}
+      open={props.visible}
       overlay={
-        <div style={{ background: '#FFF', padding: 16, borderRadius: 8 }}>
+        <Space style={{ background: '#FFF', padding: 16, borderRadius: 8 }}>
           <Checkbox.Group value={type} onChange={(value) => setType(value as string[])}>
             <Space>
               <Checkbox value={'grund'}>Grundstück</Checkbox>
               <Checkbox value={'haus'}>Haus</Checkbox>
               <Checkbox value={'wohnung'}>Wohnung</Checkbox>
-              <Button onClick={apply}>Anwenden</Button>
             </Space>
           </Checkbox.Group>
-        </div>
+          <Checkbox checked={rental} onChange={e => setRental(e.target.checked)}>Miete</Checkbox>
+          <Button onClick={apply}>Anwenden</Button>
+        </Space>
       }
     >
       <Button onClick={() => props.setVisible(!props.visible)}>Typ{additional}</Button>
