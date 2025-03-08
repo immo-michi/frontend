@@ -5,7 +5,7 @@ import { NextPage } from 'next'
 import getConfig from 'next/config'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { createRef, useEffect, useRef, useState } from 'react'
 import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
 import { connect } from 'react-redux'
 import { MapFilterArea } from '../components/map/filter/area'
@@ -20,14 +20,14 @@ import {
   SearchPropertyFilter,
   useSearchPropertyQuery,
 } from '../graphql/query/search.property.query'
-import { NextConfigType } from '../next.config.type'
+import { NextConfigType } from '../../next.config.type'
 import { State } from '../store'
-import { setToken, setTokenType } from '../store/auth'
+import { setToken } from '../store/auth'
 
 const { publicRuntimeConfig } = getConfig() as NextConfigType
 
 interface DispatchProps {
-  setToken: setTokenType
+  setToken: typeof setToken
 }
 
 interface StateProps {
@@ -125,7 +125,7 @@ const Index: NextPage<Props> = (props) => {
   ])
 
   const userLocation = useUserLocation()
-  const map = useRef<google.maps.Map>()
+  const map = createRef<google.maps.Map>()
 
   const { error } = useSearchPropertyQuery({
     variables: {

@@ -1,14 +1,14 @@
 import { ApolloProvider } from '@apollo/client'
-import AppSuspense from 'components/app.suspense'
+import AppSuspense from 'src/components/app.suspense'
 import getConfig from 'next/config'
 import { ConfigProvider, message, App as AntdApp } from 'antd'
 import { AppInitialProps, AppType } from 'next/dist/shared/lib/utils'
 import Head from 'next/head'
 import React from 'react'
-import { wrapper } from 'store'
+import { wrapper } from 'src/store'
 import '../css/globals.scss'
 import getApolloClient from '../graphql/client'
-import { NextConfigType } from '../next.config.type'
+import { NextConfigType } from '../../next.config.type'
 
 const config = getConfig() as NextConfigType
 

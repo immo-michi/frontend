@@ -2,7 +2,7 @@ import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { TokenRefreshLink } from 'apollo-link-token-refresh'
 import 'isomorphic-fetch'
-import { NextConfigType } from '../next.config.type'
+import { NextConfigType } from '../../next.config.type'
 import DebounceLink from './link/debounce.link'
 
 let client: ApolloClient<any>
