@@ -53,14 +53,14 @@ export const MapFilterArea: React.FC<Props> = (props) => {
         <div style={{ background: '#FFF', padding: 16, borderRadius: 8 }}>
           <Space>
             <InputNumber
-              prefix={'€'}
+              prefix={'㎡'}
               placeholder={'Min'}
               value={min}
               onChange={(value) => setMin(getNumberOrUndefined(value))}
             />
             -
             <InputNumber
-              prefix={'€'}
+              prefix={'㎡'}
               placeholder={'Max'}
               value={max}
               onChange={(value) => setMax(getNumberOrUndefined(value, false))}
