@@ -6,7 +6,6 @@ import getConfig from 'next/config'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { createRef, useEffect, useRef, useState } from 'react'
-import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
 import { connect } from 'react-redux'
 import { MapFilterArea } from '../components/map/filter/area'
 import { MapFilterPrice } from '../components/map/filter/price'
@@ -21,22 +20,13 @@ import {
   useSearchPropertyQuery,
 } from '../graphql/query/search.property.query'
 import { NextConfigType } from '../../next.config.type'
-import { State } from '../store'
+import { State, useAppSelector } from '../store'
 import { setToken } from '../store/auth'
 
-const { publicRuntimeConfig } = getConfig() as NextConfigType
+const { publicRuntimeConfig }  = getConfig() as NextConfigType
 
-interface DispatchProps {
-  setToken: typeof setToken
-}
-
-interface StateProps {
-  authenticated: boolean
-}
-
-type Props = StateProps & DispatchProps
-
-const Index: NextPage<Props> = (props) => {
+export default function () {
+  const authenticated = useAppSelector(state => state.auth.authenticated)
   const [dropdown, setDropdown] = useState<string>()
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -50,7 +40,6 @@ const Index: NextPage<Props> = (props) => {
   const [items, setItems] = useState<PropertyFragment[]>([])
   const [filter, setFilter] = useState<SearchPropertyFilter>({})
   const [total, setTotal] = useState<number>()
-  const [facebookLoginMutation] = useLoginFacebookMutation()
 
   useEffect(() => {
     if (!initial) {
@@ -74,6 +63,7 @@ const Index: NextPage<Props> = (props) => {
         max: parse(router.query['area[max]'] as string),
       },
       type: router.query.type ? (router.query.type as string).split(',') : undefined,
+      rental: !!router.query.rental
     })
   }, [router.query])
 
@@ -102,6 +92,10 @@ const Index: NextPage<Props> = (props) => {
       query['type'] = filter.type.join(',')
     }
 
+    if (filter.rental) {
+      query['rental'] = 1
+    }
+
     if (Object.keys(query).length === 0) {
       return
     }
@@ -122,10 +116,11 @@ const Index: NextPage<Props> = (props) => {
     filter.area?.min || 0,
     filter.area?.max || 0,
     filter.type ? filter.type.join(',') : '',
+    filter.rental
   ])
 
   const userLocation = useUserLocation()
-  const map = createRef<google.maps.Map>()
+  const map = useRef<google.maps.Map>(undefined)
 
   const { error } = useSearchPropertyQuery({
     variables: {
@@ -256,46 +251,56 @@ const Index: NextPage<Props> = (props) => {
         />
 
         <Dropdown
-          visible={dropdown === 'user'}
-          overlay={
-            <Menu>
-              <Menu.Item onClick={() => map.current.setCenter(userLocation)}>GPS Home</Menu.Item>
-              {props.authenticated && [
-                <Menu.Divider key={'spacer'} />,
-                <Menu.Item key={'profile'}>
+          open={dropdown === 'user'}
+          menu={{
+            items: [
+              {
+                key: 'center',
+                onClick: () => {
+                  map.current.setCenter(userLocation)
+                },
+                label: 'GPS Home'
+              },
+              authenticated && {
+                type: 'divider'
+              },
+              authenticated && {
+                key: 'profile',
+                label: (
                   <Link href={'/profile'}>
                     Profil
                   </Link>
-                </Menu.Item>,
-                <Menu.Item key={'lists'}>Meine Listen</Menu.Item>,
-                <Menu.Item key={'notifications'}>Benachrichtigungen</Menu.Item>,
-              ]}
-              <Menu.Divider />
-              {props.authenticated ? (
-                <Menu.Item>
+                )
+              },
+              authenticated && {
+                key: 'lists',
+                label: 'Meine Listen'
+              },
+              authenticated && {
+                key: 'notifications',
+                label: 'Benachrichtigungen'
+              },
+              {
+                type: 'divider'
+              },
+              authenticated && {
+                key: 'logout',
+                label: (
                   <Link href={'/logout'}>
                     Logout
                   </Link>
-                </Menu.Item>
-              ) : (
-                <Menu.Item>
-                  <FacebookLogin
-                    appId={publicRuntimeConfig.facebookAppId}
-                    callback={async (response) => {
-                      const result = await facebookLoginMutation({
-                        variables: {
-                          token: response.accessToken,
-                        },
-                      })
-
-                      props.setToken(result.data.token)
-                    }}
-                    render={(renderProps) => <a onClick={renderProps.onClick}>Login</a>}
-                  />
-                </Menu.Item>
-              )}
-            </Menu>
-          }
+                )
+              },
+              !authenticated && {
+                key: 'login',
+                label: (
+                  <Link href={'/login'}>
+                    Login
+                  </Link>
+                )
+              },
+            ]
+          }}
           placement="bottomRight"
           arrow
         >
@@ -367,6 +372,7 @@ const Index: NextPage<Props> = (props) => {
               return
             }
 
+            console.log('update region', region)
             setFilter({
               ...filter,
               region,
@@ -420,12 +426,3 @@ const Index: NextPage<Props> = (props) => {
     </div>
   )
 }
-
-export default connect<StateProps, DispatchProps, unknown, State>(
-  ({ auth }) => ({
-    authenticated: auth.authenticated,
-  }),
-  {
-    setToken,
-  }
-)(Index)
