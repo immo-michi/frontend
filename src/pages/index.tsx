@@ -178,7 +178,7 @@ const Index: NextPage<Props> = (props) => {
   }
 
   return (
-    <div style={{ height: '100%' }}>
+    <div style={{ height: '100vh' }}>
       {(initial || !isLoaded) && (
         <div
           style={{
@@ -389,27 +389,29 @@ const Index: NextPage<Props> = (props) => {
           <MarkerClusterer>
             {(clusterer) => (
               <>
-                {items.map((property) => (
-                  <Marker
-                    key={property.id}
-                    // icon={'/images/mappin.png'}
-                    icon={{
-                      url: `data:image/svg+xml;base64,${markerIconSvg(
-                        property.price,
-                        property.area
-                      )}`,
-                      scaledSize: new google.maps.Size(70, 60),
-                      anchor: new google.maps.Point(35, 60),
-                    }}
-                    title={property.name}
-                    clusterer={clusterer}
-                    onClick={() => setSelected(property)}
-                    position={{
-                      lat: property.location.lat,
-                      lng: property.location.lng,
-                    }}
-                  />
-                ))}
+                {items.map((property) => {
+                  return (
+                    <Marker
+                      key={property.id}
+                      // icon={'/images/mappin.png'}
+                      icon={{
+                        url: `data:image/svg+xml;base64,${markerIconSvg(
+                          property.price,
+                          property.area
+                        )}`,
+                        scaledSize: new google.maps.Size(70, 60),
+                        anchor: new google.maps.Point(35, 60),
+                      }}
+                      title={property.name}
+                      clusterer={clusterer}
+                      onClick={() => setSelected(property)}
+                      position={{
+                        lat: property.location.lat,
+                        lng: property.location.lng,
+                      }}
+                    />
+                  )
+                })}
               </>
             )}
           </MarkerClusterer>
